@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,11 +31,16 @@ const (
 // Config is the main config
 type Config struct {
 	Core struct {
+		Port       int  `yaml:"port"`
 		Production bool `yaml:"production"`
 	} `yaml:"core"`
 	Proxies []string `yaml:"proxies"`
 }
 
+var (
+	// Version of iap-gateway
+	Version = "dev"
+)
 var conf Config
 var trs []*http.Transport
 
@@ -162,7 +170,17 @@ func verifyReceipt(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	configFile, err := ioutil.ReadFile("config.yml")
+	flag := flag.NewFlagSet(os.Args[0]+" "+Version, flag.ExitOnError)
+	configFilePath := flag.String("config", "", "config file path")
+	showHelp := flag.Bool("help", false, "show help message")
+	flag.Parse(os.Args[1:])
+
+	if *showHelp {
+		flag.Usage()
+		return
+	}
+
+	configFile, err := ioutil.ReadFile(*configFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -179,5 +197,5 @@ func main() {
 	initTransports(conf.Proxies)
 
 	http.Handle("/verifyReceipt", gziphandler.GzipHandler(http.HandlerFunc(verifyReceipt)))
-	http.ListenAndServe(":8090", nil)
+	http.ListenAndServe(":"+strconv.Itoa(conf.Core.Port), nil)
 }

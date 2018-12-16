@@ -1,4 +1,5 @@
 .git* text eol=lf
+.docker* text eol=lf
 *.go text eol=lf
 *.yml text eol=lf
 *.md text eol=lf

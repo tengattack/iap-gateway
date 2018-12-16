@@ -1,4 +1,5 @@
 core:
+  port: 8091
   # production env
   production: false
 
