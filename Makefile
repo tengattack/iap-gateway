@@ -6,8 +6,9 @@ REGISTRY_PREFIX=$(if $(REGISTRY),$(addsuffix /, $(REGISTRY)))
 .PHONY: build update rollback create publish
 
 build:
-	GOOS=linux CGO_ENABLED=0 go build -ldflags "-X main.Version=${VERSION}"
-	docker build -t ${NAME}:${VERSION} .
+	docker build --build-arg version=${VERSION} \
+		--build-arg go_get_http_proxy=${GO_GET_HTTP_PROXY} \
+		-t ${NAME}:${VERSION} .
 
 publish:
 	docker tag ${NAME}:${VERSION} ${REGISTRY_PREFIX}${NAME}:${VERSION}
@@ -22,4 +23,7 @@ rollback:
 create:
 	docker service create --replicas 1 -p ${PORT}:${PORT} \
 		--env "HOST={{.Node.Hostname}}" \
+		--update-order start-first \
+		--rollback-order start-first \
+		--config source=iap-gateway.yml,target=/etc/iap-gateway/iap-gateway.yml,mode=0444 \
 		--name ${NAME} ${REGISTRY_PREFIX}${NAME}:${VERSION}
