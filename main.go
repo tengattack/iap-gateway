@@ -169,6 +169,11 @@ func verifyReceipt(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func health(w http.ResponseWriter, r *http.Request) {
+	// https://tools.ietf.org/id/draft-inadarei-api-health-check-01.html
+	w.Write([]byte(`{"status":"pass"}`))
+}
+
 func main() {
 	flag := flag.NewFlagSet(os.Args[0]+" "+Version, flag.ExitOnError)
 	configFilePath := flag.String("config", "", "config file path")
@@ -197,5 +202,6 @@ func main() {
 	initTransports(conf.Proxies)
 
 	http.Handle("/verifyReceipt", gziphandler.GzipHandler(http.HandlerFunc(verifyReceipt)))
+	http.Handle("/health", http.HandlerFunc(health))
 	http.ListenAndServe(":"+strconv.Itoa(conf.Core.Port), nil)
 }

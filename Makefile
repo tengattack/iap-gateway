@@ -1,11 +1,11 @@
 NAME=iap-gateway
-VERSION=1.0.0
+VERSION=1.0.1
 PORT=8091
 REGISTRY_PREFIX=$(if $(REGISTRY),$(addsuffix /, $(REGISTRY)))
 
 .PHONY: build update rollback create publish
 
-build:
+build: $(shell find . -type f  -name '*.go')
 	docker build --build-arg version=${VERSION} \
 		--build-arg go_get_http_proxy=${GO_GET_HTTP_PROXY} \
 		-t ${NAME}:${VERSION} .
